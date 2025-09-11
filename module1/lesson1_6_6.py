@@ -6,7 +6,7 @@ try:
     link = "http://suninjuly.github.io/registration1.html"
     link2 = "http://suninjuly.github.io/registration2.html"
     browser = webdriver.Chrome()
-    browser.get(link2)
+    browser.get(link)
 
     # Ваш код, который заполняет обязательные поля
     firstname_input = browser.find_element(By.XPATH, "//label[contains(text(),'First name')]//following::input")
