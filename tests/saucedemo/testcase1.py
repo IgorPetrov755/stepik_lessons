@@ -2,6 +2,7 @@ import time
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 
 class TestCase1:
@@ -10,7 +11,23 @@ class TestCase1:
         # 1. Перейти на сайт Saucedemo.
         try:
             link = "https://www.saucedemo.com/"
-            browser = webdriver.Chrome()  # Открыть браузер
+
+            options = Options()
+            options.add_argument('start-maximized')
+            options.add_argument('--avoid-stats')
+            options.add_argument('--disable-popup-blocking')
+            options.add_argument('--disable-notifications')
+            options.add_experimental_option('excludeSwitches', ['disable-prompt-on-repost', 'enable-automation'])
+            options.add_experimental_option('prefs', {
+                'profile.default_content_setting_values.notifications': 2,  # disable all notice
+                'profile.default_content_setting_values.media_stream_mic': 2,  # disable microphone
+                'profile.default_content_setting_values.media_stream_camera': 2,  # disable camera
+                'profile.default_content_setting_values.geolocation': 2,  # disable geolocations
+                'credentials_enable_service': False,  # Отключаем сервис автозаполнения
+                'profile.password_manager_enabled': False,  # Отключаем менеджер паролей
+            })
+            browser = webdriver.Chrome(service=None, options=options)  # Открыть браузер
+
             browser.get(link)  # перейти на страницу link
 
         # 2. Проверить, что заголовок страницы соответствует "Swag Labs".
@@ -37,9 +54,25 @@ class TestCase1:
                 'фильтр в выпадающем списке по умолчанию не имеет значение "Name (A to Z)"'
 
         # 6. Добавить первый товар из списка в корзину, нажав на кнопку "Add to cart".
+            first_card = browser.find_element(By.CSS_SELECTOR, 'div.inventory_item:first-child')
+            cart_button = first_card.find_element(By.CSS_SELECTOR, 'button.btn_inventory')
+            cart_button.click()
+
         # 7. Проверить, что иконка корзины в правом верхнем углу отображает счетчик с цифрой 1.
+            cart_badge = browser.find_elements(By.CSS_SELECTOR, 'span[data-test="shopping-cart-badge"]')
+            assert len(cart_badge) == 1, 'Товар не добавлен в корзину'
+            assert cart_badge[0].text == "1", 'Неверный текст счетчика корзины'
+
         # 8. Добавить последний товар из списка в корзину, нажав на кнопку "Add to cart".
+            last_card = browser.find_element(By.CSS_SELECTOR, 'div.inventory_item:last-child')
+            cart_button = last_card.find_element(By.CSS_SELECTOR, 'button.btn_inventory')
+            cart_button.click()
+
         # 9. Проверить, что значение счетчика на иконке корзины увеличилось и теперь отображает цифру 2.
+            cart_badge = browser.find_elements(By.CSS_SELECTOR, 'span[data-test="shopping-cart-badge"]')
+            assert len(cart_badge) == 1, 'Товар не добавлен в корзину'
+            assert cart_badge[0].text == "2", 'Неверный текст счетчика корзины'
+
         # 10. Удалить первый товар из корзины, нажав на кнопку "Remove" у первого товара в списке.
         # 11. Проверить, что значение счетчика на иконке корзины изменилось и теперь отображает цифру 1.
         # 12. Кликнуть на иконку корзины 🛒 в правом верхнем углу для перехода в корзину.
