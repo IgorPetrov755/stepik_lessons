@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 
 from pages.saucedemo_landing import SauceDemoLanding
+from pages.saucedemo_products import SauceDemoProducts
 
 
 class TestSaucedemo:
@@ -29,23 +30,19 @@ class TestSaucedemo:
         assert logo_text == "Swag Labs", 'заголовок страницы не соответствует "Swag Labs"'
 
         # 3. Проверить, текст кнопки логина.
-        login_button = browser.find_element(By.CSS_SELECTOR, '*[data-test="login-button"]')
-        assert login_button.get_attribute(name='value') == "Login", "текст кнопки Логин некорректен"
+        login_button_text = page.get_element_attribute(page.login_button, 'value')
+        assert login_button_text == "Login", "текст кнопки Логин некорректен"
 
         # 4. Выполнить вход под учетной записью standard_user с паролем secret_sauce.
-        username_input = browser.find_element(By.CSS_SELECTOR, 'input[data-test="username"]')
-        username_input.send_keys("standard_user")
-        password_input = browser.find_element(By.CSS_SELECTOR, 'input[data-test="password"]')
-        password_input.send_keys("secret_sauce")
-        login_button.click()
+        page.login(username='standard_user', password='secret_sauce')
 
-        assert browser.current_url == 'https://www.saucedemo.com/inventory.html', 'Не выполнен редирект после логина'
-        shopping_cart_link = browser.find_elements(By.CSS_SELECTOR, '*[data-test="shopping-cart-link"]')
-        assert len(shopping_cart_link) == 1, 'Не найдена корзина'
+        products_page = SauceDemoProducts(browser)
+        assert products_page.get_current_url() == products_page.url, 'Не выполнен редирект после логина'
+        assert products_page.check_element_exist(products_page.shopping_cart_link), 'Не найдена корзина'
 
         # 5. Проверить, что выбранный фильтр в выпадающем списке по умолчанию имеет значение "Name (A to Z)".
-        filter_active_value = browser.find_element(By.CSS_SELECTOR, '*[data-test="active-option"]')
-        assert filter_active_value.text == "Name (A to Z)", \
+        filter_text = products_page.get_element_text(products_page.filter_active_value)
+        assert filter_text == "Name (A to Z)", \
             'фильтр в выпадающем списке по умолчанию не имеет значение "Name (A to Z)"'
 
         # 6. Добавить первый товар из списка в корзину, нажав на кнопку "Add to cart".
