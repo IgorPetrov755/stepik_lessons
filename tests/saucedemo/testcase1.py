@@ -243,5 +243,3 @@ class TestSaucedemo:
         #     'При фильтре Price (low to high) список товаров отсортирован неправильно'
 
         browser.quit()
-
-
