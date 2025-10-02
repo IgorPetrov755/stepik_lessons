@@ -11,24 +11,7 @@ from pages.saucedemo_products import SauceDemoProducts
 
 
 class TestSaucedemo:
-    @pytest.fixture
-    def firefox_browser(self):
-        """
-        Фикстура для инициализации браузера Firefox.
 
-        Returns:
-            WebDriver: Экземпляр Firefox WebDriver
-
-        Note:
-            После выполнения теста браузер автоматически закрывается
-        """
-        options = webdriver.FirefoxOptions()
-        options.binary_location = "J:\projects\stepik_lessons\chromedriver\geckodriver.exe"
-        browser = webdriver.Firefox(options=options)
-        browser.implicitly_wait(10)  # Устанавливаем неявные ожидания
-        browser.maximize_window()  # Максимизируем окно браузера
-        yield browser
-        browser.quit()
 
     def test_saucedemo(self, firefox_browser):
         browser = firefox_browser
