@@ -41,6 +41,7 @@ class TestSaucedemoLogin:
         error_text = page.get_element_text(page.error_msg)
         assert error_text == INVALID_LOGIN_MESSAGE
 
+
     def test_login_blocked_user(self, browser):
         """Тест входа заблокированного пользователя"""
         page = SauceDemoLanding(browser)
