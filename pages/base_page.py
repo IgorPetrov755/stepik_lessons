@@ -117,6 +117,9 @@ class BasePage:
         """
         return self.browser.find_element(*locator)
 
+    def _find_elements(self, locator: tuple[By, str]) -> list[WebElement]:
+        return self.browser.find_elements(*locator)
+
     def click_element(self, locator: tuple):
         """
         Кликает на элемент, найденный по указанному локатору.
@@ -512,3 +515,11 @@ class BasePage:
             >>> self.js_click((By.ID, 'hidden-button'))
         """
         self.browser.execute_script("arguments[0].click();", self._find_element(locator))
+
+    def select_dropdown_by_value(self, locator: tuple, value: str):
+        select = Select(self._find_element(locator))
+        select.select_by_value(value)
+
+    def get_selected_dropdown_text(self, locator: tuple):
+        select = Select(self._find_element(locator))
+        return select.first_selected_option.text

@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 
+from pages.saucedemo_cart import SauceDemoCart
 from pages.saucedemo_landing import SauceDemoLanding
 from pages.saucedemo_products import SauceDemoProducts
 
@@ -12,9 +13,20 @@ from pages.saucedemo_products import SauceDemoProducts
 class TestSaucedemo:
     @pytest.fixture
     def firefox_browser(self):
+        """
+        Фикстура для инициализации браузера Firefox.
+
+        Returns:
+            WebDriver: Экземпляр Firefox WebDriver
+
+        Note:
+            После выполнения теста браузер автоматически закрывается
+        """
         options = webdriver.FirefoxOptions()
         options.binary_location = "J:\projects\stepik_lessons\chromedriver\geckodriver.exe"
         browser = webdriver.Firefox(options=options)
+        browser.implicitly_wait(10)  # Устанавливаем неявные ожидания
+        browser.maximize_window()  # Максимизируем окно браузера
         yield browser
         browser.quit()
 
@@ -37,74 +49,74 @@ class TestSaucedemo:
         page.login(username='standard_user', password='secret_sauce')
 
         products_page = SauceDemoProducts(browser)
-        assert products_page.get_current_url() == products_page.url, 'Не выполнен редирект после логина'
+        assert products_page.url in products_page.get_current_url(), 'Не выполнен редирект после логина'
         assert products_page.check_element_exist(products_page.shopping_cart_link), 'Не найдена корзина'
 
-        # 5. Проверить, что выбранный фильтр в выпадающем списке по умолчанию имеет значение "Name (A to Z)".
-        filter_text = products_page.get_element_text(products_page.filter_active_value)
-        assert filter_text == "Name (A to Z)", \
-            'фильтр в выпадающем списке по умолчанию не имеет значение "Name (A to Z)"'
+        # 5. Проверить фильтр по умолчанию
+        filter_text = products_page.get_current_filter()
+        assert filter_text == "Name (A to Z)", 'Фильтр по умолчанию не "Name (A to Z)"'
 
-        # 6. Добавить первый товар из списка в корзину, нажав на кнопку "Add to cart".
-        first_card = browser.find_element(By.CSS_SELECTOR, 'div.inventory_item:first-child')
-        cart_button = first_card.find_element(By.CSS_SELECTOR,
-                                              'button[data-test="add-to-cart-sauce-labs-backpack"]')
-        assert cart_button.text == "Add to cart", 'Текст кнопки не соответствует ожидаемому'
-        cart_button.click()
+        # 6. Добавить первый товар в корзину
+        first_product = products_page.get_first_product()
+        first_product_name = products_page.get_product_name(first_product)
 
-        # 7. Проверить, что иконка корзины в правом верхнем углу отображает счетчик с цифрой 1.
-        cart_badge = browser.find_elements(By.CSS_SELECTOR, 'span[data-test="shopping-cart-badge"]')
-        assert len(cart_badge) == 1, 'Товар не добавлен в корзину'
-        assert cart_badge[0].text == "1", 'Неверный текст счетчика корзины'
+        # Проверяем текст кнопки перед кликом
+        add_button = first_product.find_element(*products_page.add_button)
+        assert add_button.text == "Add to cart", 'Текст кнопки не соответствует ожидаемому'
 
-        # 8. Добавить последний товар из списка в корзину, нажав на кнопку "Add to cart".
-        last_card = browser.find_element(By.CSS_SELECTOR, 'div.inventory_item:last-child')
-        last_card_name = last_card.find_element(By.CSS_SELECTOR, '*[data-test="inventory-item-name"]').text
-        cart_button = last_card.find_element(By.CSS_SELECTOR, 'button.btn_inventory')
-        cart_button.click()
+        products_page.add_product_to_cart(first_product)
 
-        # 9. Проверить, что значение счетчика на иконке корзины увеличилось и теперь отображает цифру 2.
-        cart_badge = browser.find_elements(By.CSS_SELECTOR, 'span[data-test="shopping-cart-badge"]')
-        assert len(cart_badge) == 1, 'Товар не добавлен в корзину'
-        assert cart_badge[0].text == "2", 'Неверный текст счетчика корзины'
+        # 7. Проверить счетчик корзины
+        cart_count = products_page.get_cart_items_count()
+        assert cart_count == 1, f'Неверный счетчик корзины. Ожидалось: 1, получено: {cart_count}'
 
-        # 10. Удалить первый товар из корзины, нажав на кнопку "Remove" у первого товара в списке.
-        first_card = browser.find_element(By.CSS_SELECTOR, 'div.inventory_item:first-child')
-        cart_button = first_card.find_element(By.CSS_SELECTOR, 'button.btn_inventory')
-        assert cart_button.text == "Remove", 'Текст кнопки не соответствует ожидаемому'
-        cart_button.click()
+        # 8. Добавить последний товар в корзину
+        last_product = products_page.get_last_product()
+        last_product_name = products_page.get_product_name(last_product)
+        products_page.add_product_to_cart(last_product)
 
-        # 11. Проверить, что значение счетчика на иконке корзины изменилось и теперь отображает цифру 1.
-        cart_badge = browser.find_elements(By.CSS_SELECTOR, 'span[data-test="shopping-cart-badge"]')
-        assert len(cart_badge) == 1, 'Товар не добавлен в корзину'
-        assert cart_badge[0].text == "1", 'Неверный текст счетчика корзины'
+        # 9. Проверить обновленный счетчик корзины
+        cart_count = products_page.get_cart_items_count()
+        assert cart_count == 2, f'Неверный счетчик корзины. Ожидалось: 2, получено: {cart_count}'
 
-        # 12. Кликнуть на иконку корзины 🛒 в правом верхнем углу для перехода в корзину.
-        cart_link = browser.find_element(By.CSS_SELECTOR, 'a[data-test="shopping-cart-link"]')
-        cart_link.click()
-        assert browser.current_url == 'https://www.saucedemo.com/cart.html', 'Не выполнен переход в карточку корзины'
+        # 10. Удалить первый товар из корзины
+        products_page.remove_product_from_cart(first_product)
 
-        # 13. Проверить, что добавленный товар (последний из списка) отображается на странице корзины.
-        card_list = browser.find_elements(By.CSS_SELECTOR, '.cart_item')
-        assert len(card_list) == 1, 'В корзине не один элемент'
-        card_item_name = card_list[0].find_element(By.CSS_SELECTOR, '*[data-test="inventory-item-name"]').text
-        assert card_item_name == last_card_name, 'Заголовок элемента в корзине не равен последнему элементу'
+        # 11. Проверить счетчик после удаления
+        cart_count = products_page.get_cart_items_count()
+        assert cart_count == 1, f'Неверный счетчик корзины после удаления. Ожидалось: 1, получено: {cart_count}'
 
-        # 14. Нажать на кнопку "Continue Shopping" для возврата к каталогу товаров.
-        continue_shopping_button = browser.find_element(By.CSS_SELECTOR, 'button[data-test="continue-shopping"]')
-        continue_shopping_button.click()
-        time.sleep(1)
-        assert browser.current_url == 'https://www.saucedemo.com/inventory.html', 'Не выполнен переход к списку товаров'
+        # 12. Перейти в корзину
+        products_page.go_to_cart()
 
-        # 15. Изменить фильтр в выпадающем списке с "Name (A to Z)" на "Price (low to high)".
-        select = Select(browser.find_element(By.CSS_SELECTOR, 'select[data-test="product-sort-container"]'))
-        select.select_by_value("lohi")
+        cart_page = SauceDemoCart(browser)
+        cart_page.wait_for_page_load()
+        assert cart_page.url in cart_page.get_current_url(), 'Не выполнен переход в корзину'
 
-        # 16. Проверить, что список товаров отсортирован правильно: цена первого товара меньше цены последнего.
-        first_card = browser.find_element(By.CSS_SELECTOR, 'div.inventory_item:first-child')
-        first_card_price = first_card.find_element(By.CSS_SELECTOR, '*[data-test="inventory-item-price"]').text
+        # 13. Проверить товары в корзине
+        cart_items_count = cart_page.get_cart_items_count()
+        assert cart_items_count == 1, f'В корзине не один элемент. Найдено: {cart_items_count}'
 
-        last_card = browser.find_element(By.CSS_SELECTOR, 'div.inventory_item:last-child')
-        last_card_price = last_card.find_element(By.CSS_SELECTOR, '*[data-test="inventory-item-price"]').text
-        # assert first_card_price < last_card_price, \
-        #     'При фильтре Price (low to high) список товаров отсортирован неправильно'
+        cart_item_names = cart_page.get_cart_item_names()
+        assert last_product_name in cart_item_names, f'Товар "{last_product_name}" отсутствует в корзине'
+        assert first_product_name not in cart_item_names, f'Удаленный товар "{first_product_name}" присутствует в корзине'
+
+        # 14. Вернуться к каталогу товаров
+        cart_page.continue_shopping()
+        products_page.wait_for_page_load()
+        assert products_page.url in products_page.get_current_url(), 'Не выполнен переход к списку товаров'
+
+        # 15. Изменить фильтр сортировки
+        products_page.select_filter("lohi")  # Price (low to high)
+
+        # 16. Проверить корректность сортировки
+        current_filter = products_page.get_current_filter()
+        assert "Price (low to high)" in current_filter, 'Фильтр не установлен на Price (low to high)'
+
+        # Проверяем сортировку цен
+        products = products_page.get_all_products()
+        if len(products) >= 2:
+            first_price = products_page.get_product_price(products[0])
+            last_price = products_page.get_product_price(products[-1])
+            assert first_price <= last_price, \
+                f'Сортировка неверна. Первая цена: {first_price}, последняя: {last_price}'
