@@ -5,14 +5,25 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.select import Select
+from selenium.webdriver.firefox.service import Service
+from path_helper import project_root_dir
 
 
 class TestSaucedemo:
     @pytest.fixture
     def firefox_browser(self):
         options = webdriver.FirefoxOptions()
-        options.binary_location = "J:\projects\stepik_lessons\chromedriver\geckodriver.exe"
-        browser = webdriver.Firefox(options=options)
+
+        # Путь к geckodriver (драйверу)
+        geckodriver_path = project_root_dir() / "chromedriver" / "geckodriver.exe"
+
+        # Создаем сервис с указанием пути к драйверу
+        service = Service(executable_path=str(geckodriver_path))
+
+        # Если нужно указать путь к браузеру Firefox (обычно не требуется)
+        # options.binary_location = "C:\\Program Files\\Mozilla Firefox\\firefox.exe"
+
+        browser = webdriver.Firefox(service=service, options=options)
         yield browser
         browser.quit()
 

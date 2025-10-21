@@ -1,3 +1,4 @@
+import pytest
 import os
 import time
 
@@ -8,12 +9,15 @@ from selenium.webdriver.support import expected_conditions as EC
 
 load_dotenv()
 
-JOURNAL_BASE_URL = os.getenv('JOURNAL_BASE_URL')
-JOURNAL_LOGIN = os.getenv('JOURNAL_LOGIN')
-JOURNAL_PASSWORD = os.getenv('JOURNAL_PASSWORD')
+# JOURNAL_BASE_URL = os.getenv('JOURNAL_BASE_URL')
+# JOURNAL_LOGIN = os.getenv('JOURNAL_LOGIN')
+# JOURNAL_PASSWORD = os.getenv('JOURNAL_PASSWORD')
+JOURNAL_BASE_URL = ''
+JOURNAL_LOGIN = ''
+JOURNAL_PASSWORD = ''
 STUDENT_NAME = 'Афанасьев Андрей Анатольевич'
 
-
+@pytest.mark.skip('Задайте переменные JOURNAL_LOGIN.. и тогда удалите эту строку')
 class TestLoginJournal:
     def test_successful_login(self, browser):
         # 1. Перейти на страницу авторизации

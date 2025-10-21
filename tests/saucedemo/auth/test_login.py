@@ -8,17 +8,13 @@ LOCKED_USER_MESSAGE = 'Epic sadface: Sorry, this user has been locked out.'
 
 load_dotenv(True)
 
-STANDART_USER = os.getenv('STANDART_USER')
-LOCKED_USER = os.getenv('LOCKED_USER')
-PASSWORD = os.getenv('PASSWORD')
-
 
 class TestSaucedemoLogin:
     def test_success_login(self, browser):
         """Тест успешной авторизации в системе"""
         page = SauceDemoLanding(browser)
         page.open()
-        page.login(username=STANDART_USER, password=PASSWORD)
+        page.login(username='standard_user', password='secret_sauce')
         assert 'inventory' in browser.current_url
 
     def test_invalid_username(self, browser):
@@ -26,7 +22,7 @@ class TestSaucedemoLogin:
         page = SauceDemoLanding(browser)
         page.open()
         page.fill_username(username='testtest')
-        page.fill_password(password=PASSWORD)
+        page.fill_password(password='secret_sauce')
         page.submit()
         error_text = page.get_element_text(page.error_msg)
         assert error_text == INVALID_LOGIN_MESSAGE
@@ -35,7 +31,7 @@ class TestSaucedemoLogin:
         """Тест ошибки при неверном пароле"""
         page = SauceDemoLanding(browser)
         page.open()
-        page.fill_username(username=STANDART_USER)
+        page.fill_username(username='standard_user')
         page.fill_password(password='testtest')
         page.submit()
         error_text = page.get_element_text(page.error_msg)
@@ -46,8 +42,8 @@ class TestSaucedemoLogin:
         """Тест входа заблокированного пользователя"""
         page = SauceDemoLanding(browser)
         page.open()
-        page.fill_username(username=LOCKED_USER)
-        page.fill_password(password=PASSWORD)
+        page.fill_username(username='locked_out_user')
+        page.fill_password(password='secret_sauce')
         page.submit()
         error_text = page.get_element_text(page.error_msg)
         assert error_text == LOCKED_USER_MESSAGE
