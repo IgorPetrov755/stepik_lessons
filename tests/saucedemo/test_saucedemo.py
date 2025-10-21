@@ -11,10 +11,7 @@ from pages.saucedemo_products import SauceDemoProducts
 
 
 class TestSaucedemo:
-
-
-    def test_saucedemo(self, firefox_browser):
-        browser = firefox_browser
+    def test_saucedemo(self, browser):
         """Test Case 1: test"""
         # 1. Перейти на сайт Saucedemo.
         page = SauceDemoLanding(browser)
